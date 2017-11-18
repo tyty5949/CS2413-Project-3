@@ -157,6 +157,8 @@ void LinkedHashTable<T1, T2>::reHash() {
 				// Update primary hash offset
 				hashVal = (hashVal + secondaryHash) % _hashArraySize;
 
+				// TODO - Fix infinite loop bug
+
 				// If bucket is empty
 				if (bucket->getValue() == 0) {
 					// Set bucket equal to value
