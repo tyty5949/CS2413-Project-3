@@ -3,8 +3,8 @@
  *
  * Class: CS2413
  * Author: Tyler Hunt (113401590)
- * Date: 11/2/17
- * Assignment: Project #2
+ * Date: 11/17/17
+ * Assignment: Project #3
  */
 #include <iostream>
 #include <iomanip>
@@ -18,7 +18,8 @@ using namespace std;
  * Main function.
  */
 int main() {
-	dataList = new LinkedList<Eclipse>();
+	hashTable = new LinkedHashTable<int, Eclipse>(*compareKeys, *primaryHash,
+			*secondaryHash);
 
 	// Initial data load
 	string input;
@@ -46,7 +47,7 @@ int main() {
 
 	// Main Loop
 	do {
-		cout << "MPFOCSQ? ";
+		cout << "MPFOCSQLH? ";
 		getline(cin, input);
 
 		// Merge
@@ -98,7 +99,8 @@ int main() {
 				}
 				cout << "Data lines read: " << dataLinesAttempted
 						<< "; Valid eclipses read: " << dataLinesValid
-						<< "; Eclipses in memory: " << dataList->size() << endl;
+						<< "; Eclipses in memory: " << sortedArray->size()
+						<< endl;
 			} else {
 				// Output to file
 				ofstream stream;
@@ -113,26 +115,26 @@ int main() {
 					}
 					stream << "Data lines read: " << dataLinesAttempted
 							<< "; Valid eclipses read: " << dataLinesValid
-							<< "; Eclipses in memory: " << dataList->size()
+							<< "; Eclipses in memory: " << sortedArray->size()
 							<< endl;
 					stream.close();
 				}
 			}
 		}
 		// Print out by catalog number, traverse linked list
-		else if (input == "C") {
+		else if (input == "C" || input == "L") {
 			cout << header << endl;
-			if (dataList->size() != 0) {
-				LinkedList<Eclipse> *node = dataList;
+			if (sortedArray->size() != 0) {
+				LinkedList<Eclipse> *node = hashTable->toLinkedList();
 				while (node->next() != 0) {
-					cout << node->info().getDataString() << endl;
+					cout << node->info()->getDataString() << endl;
 					node = node->next();
 				}
-				cout << node->info().getDataString() << endl;
+				cout << node->info()->getDataString() << endl;
 			}
 			cout << "Data lines read: " << dataLinesAttempted
 					<< "; Valid eclipses read: " << dataLinesValid
-					<< "; Eclipses in memory: " << dataList->size() << endl;
+					<< "; Eclipses in memory: " << sortedArray->size() << endl;
 		}
 		// Sort
 		else if (input == "S") {
@@ -142,14 +144,82 @@ int main() {
 				int col = stoi(input);
 				if (col >= 1 && col <= 18) {
 					compareColumn = col - 1;
-					sortedArray->sort(*compareEclipsesByColumn);// Pass function as parameter
+					sortedArray->sort(*compareEclipsesByColumn); // Pass function as parameter
 				}
 			}
+		}
+		// Traverse hash table
+		else if (input == "H") {
+			hashTable->print();
 		}
 	} while (input != "Q");
 
 	cout << "Friendly parting message." << endl;
 	return 0;
+}
+
+/**
+ * Compares two eclipse keys to determine what order they should fit in the linked list.
+ * Works like the java compare methods, returning 0 for equality, 1 if key1 > key2,
+ * and -1 if key1 < key2.
+ * Note: Passed as a parameter into the hash table constructor.
+ *
+ * @parm key1 -
+ * 				The first key to compare.
+ * @param key2 -
+ * 				The second key to compare.
+ *
+ * @return -
+ * 				Which key is greator.
+ */
+int compareKeys(int key1, int key2) {
+	if (key1 > key2) {
+		return 1;
+	} else if (key1 < key2) {
+		return -1;
+	} else {
+		return 0;
+	}
+}
+
+// TODO - Make more random
+/**
+ * The primary hashing function for hashing eclipse keys needed for double hashing.
+ * Note: Passed as a parameter into the hash table constructor.
+ *
+ * @param key -
+ * 				The key to be hashed.
+ * @param tableSize -
+ * 				The current size of the hash table.
+ *
+ * @return -
+ * 				The hash value
+ */
+int primaryHash(int key, int tableSize) {
+	return (key % tableSize);
+}
+
+// TODO - Make more random
+/**
+ * The secondary hashing function for hashing eclipse keys needed for double hashing.
+ * Note: Passed as a parameter into the hash table constructor.
+ * Note: Handles the double hashing problem of infinitely searching for a spot by
+ * 	making sure the secondary hash never has a common multiple with the table size.
+ *
+ * @param key -
+ * 				The key to be hashed.
+ * @param tableSize -
+ * 				The current size of the hash table.
+ *
+ * @return -
+ * 				The hash value
+ */
+int secondaryHash(int key, int tableSize) {
+	int hash = 11 - (key % 11);
+	while (tableSize % hash == 0) {
+		hash++;
+	}
+	return hash;
 }
 
 /**
@@ -173,6 +243,8 @@ void mergeDataFromStream(ifstream &stream) {
 			header += line + "\n";
 		}
 	}
+	LinkedList<int> keyList = LinkedList<int>();
+	LinkedList<Eclipse> valueList = LinkedList<Eclipse>();
 	getline(stream, line);
 	while (line != "") {
 		dataLinesAttempted++;
@@ -189,51 +261,20 @@ void mergeDataFromStream(ifstream &stream) {
 			eclipse->parseString(line);
 			eclipse->setDataString(origLine);
 
-			// Move it into list
-			// TODO - More efficient list traversal
-			bool inserted = false;
-			for (int i = 0; i < dataList->size(); i++) {
-				try {
-					// TODO - Fix duplicate problem
-					// Replace duplicate
-					if (stoi(dataList->infoAt(i).getCol(0))
-							== stoi(eclipse->getCol(0))) {
-						dataList->addAt(*eclipse, i);
-						dataList->removeAt(i);
-						inserted = true;
-						break;
-					}
-					// Just add before greater id's
-					else if (stoi(dataList->infoAt(i).getCol(0))
-							> stoi(eclipse->getCol(0))) {
-						dataList->addAt(*eclipse, i);
-						inserted = true;
-						break;
-					}
-				} catch (string& s) {
-					cout << "Exception in mergeDataFromStream(): " << s << endl;
-				}
-			}
-			// List is empty
-			if (dataList->size() == 0) {
-				dataList->add(*eclipse);
-			}
-			// Add to end
-			else if (!inserted) {
-				try {
-					dataList->addAt(*eclipse, dataList->size());
-				} catch (string &s) {
-					cout << s << endl;
-				}
-			}
+			// Move it to lists to be added
+			int *key = new int(stoi(eclipse->getCol(0)));
+			keyList.add(*key);
+			valueList.add(*eclipse);
 		}
 		getline(stream, line);
 	}
 	stream.close();
 
+	hashTable->merge(&keyList, &valueList);
+
 	// Replace sorted array
 	delete sortedArray;
-	sortedArray = dataList->toResizableArray();
+	sortedArray = hashTable->toResizableArray();
 }
 
 /**
@@ -250,6 +291,7 @@ void purgeDataFromStream(ifstream &stream) {
 	for (int i = 0; i < 10; i++) {
 		getline(stream, line);
 	}
+	LinkedList<int> keyList = LinkedList<int>();
 	getline(stream, line);
 	while (line != "") {
 		// Remove spaces and separate with commas, CSV format
@@ -257,44 +299,27 @@ void purgeDataFromStream(ifstream &stream) {
 		line = formatLine(line);
 		// Verify data lines as given in lab 1 - 4
 		if (verifyLine(line)) {
-			Eclipse *eclipse = new Eclipse();
-			eclipse->parseString(line);
-			eclipse->setDataString(origLine);
+			Eclipse eclipse = Eclipse();
+			eclipse.parseString(line);
 
-			// Remove it from the list
-			bool removed = false;
-			LinkedList<Eclipse> *node = dataList;
-			try {
-				while (node->next() != 0) {
-					if (stoi(node->info().getCol(0))
-							== stoi(eclipse->getCol(0))) {
-						node->remove();
-						removed = true;
-						break;
-					}
-					node = node->next();
-				}
-				if (stoi(node->info().getCol(0)) == stoi(eclipse->getCol(0))) {
-					node->remove();
-					removed = true;
-				}
-			} catch (string &s) {
-				cout << "Exception in purgeDataFromStream(): " << s << endl;
-			}
+			// Add it to list to be removed
+			int *key = new int(stoi(eclipse.getCol(0)));
+			keyList.add(*key);
 
-			// If not found in list
-			if (!removed) {
-				cout << "The entry with catalog number " << eclipse->getCol(0)
-						<< " was not found." << endl;
-			}
 		}
 		getline(stream, line);
 	}
 	stream.close();
 
+	hashTable->purge(&keyList);
+
 	// Replace sorted array
 	delete sortedArray;
-	sortedArray = dataList->toResizableArray();
+	try {
+		sortedArray = hashTable->toResizableArray();
+	} catch (string &s) {
+		cerr << "Error: " << s << endl;
+	}
 }
 
 /**
@@ -364,7 +389,6 @@ void findLoop(int column) {
 	}
 	// Linear search
 	else {
-		cout << sortedArray->size() << endl;
 		try {
 			// TODO - Implement more efficient traverse
 			for (int i = 0; i < sortedArray->size(); i++) {
@@ -376,14 +400,16 @@ void findLoop(int column) {
 			cout << "Exception in linearSearch(): " << s << endl;
 		}
 	}
+
+	// Print out list of found eclipses
 	cout << header << endl;
 	if (foundList.size() != 0) {
 		LinkedList<Eclipse> *node = &foundList;
 		while (node->next() != 0) {
-			cout << node->info().getDataString() << endl;
+			cout << node->info()->getDataString() << endl;
 			node = node->next();
 		}
-		cout << node->info().getDataString() << endl;
+		cout << node->info()->getDataString() << endl;
 	}
 	cout << "Eclipses found: " << foundList.size() << endl;
 }
@@ -402,7 +428,6 @@ void findLoop(int column) {
  * @param right
  * 				The right edge of the array to search through.
  */
-// TODO - Verify it works
 int binarySearch(int col, string val, int left, int right) {
 	int mid = left + right / 2;
 	if (sortedArray->get(mid).getCol(col) == val) {

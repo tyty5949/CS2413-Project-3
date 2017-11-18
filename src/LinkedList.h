@@ -25,7 +25,7 @@ public:
 	LinkedList<T>(T& object);
 	LinkedList<T>(T& object, LinkedList<T>* linkedList);
 	bool isEmpty();
-	T& info();
+	T* info();
 	void add(T& object);
 	LinkedList<T>& find(T& key);
 	LinkedList<T>* next();
@@ -36,7 +36,7 @@ public:
 	T removeAt(int index);
 	ResizableArray<T>* toResizableArray();
 
-private:
+protected:
 	T* _info;
 	LinkedList<T>* _next;
 };
@@ -122,11 +122,11 @@ bool LinkedList<T>::isEmpty() {
  * 				If the list is empty.
  */
 template<typename T>
-T& LinkedList<T>::info() {
+T* LinkedList<T>::info() {
 	if (_info == 0) {
 		throw std::string("info(), LinkedList is empty, cannot get info!");
 	}
-	return *_info;
+	return _info;
 }
 
 /**

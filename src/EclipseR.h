@@ -11,10 +11,10 @@
 
 #include "ResizableArray.h"
 #include "Eclipse.h"
-#include "LinkedList.h"
+#include "LinkedHashTable.h"
 #include <string>
 
-LinkedList<Eclipse> *dataList;
+LinkedHashTable<int,Eclipse> *hashTable;
 ResizableArray<Eclipse> *sortedArray;
 int dataLinesAttempted;
 int dataLinesValid;
@@ -33,6 +33,9 @@ void purgeDataFromStream(std::ifstream &stream);
 int compareEclipsesByColumn(Eclipse obj1, Eclipse obj2);
 int binarySearch(int col, std::string val, int left, int right);
 void findLoop(int column);
+int compareKeys(int key1, int key2);
+int primaryHash(int key, int tableSize);
+int secondaryHash(int key, int tableSize);
 int main();
 
 #endif /* ECLIPSER_H_ */

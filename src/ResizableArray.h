@@ -79,6 +79,9 @@ private:
  }
  */
 
+/**
+ * Overridden << operator.
+ */
 template<typename T>
 std::ostream& operator<<(std::ostream& s, ResizableArray<Eclipse>& array) {
 	for (int i = array._dataAmount - 1; i >= 0; i--) {
@@ -87,6 +90,9 @@ std::ostream& operator<<(std::ostream& s, ResizableArray<Eclipse>& array) {
 	return s;
 }
 
+/**
+ * Returns a string which can be printed.
+ */
 template<typename T>
 std::string ResizableArray<T>::toString() {
 	std::string s;
@@ -245,12 +251,20 @@ T& ResizableArray<T>::get(int index) {
 	return *(_array + index);
 }
 
+/**
+ * Runs a quicksort on the array based on the inputed comparison function.
+ *
+ * @param compFunc -
+ * 						The function used to compare two objects.
+ */
 template<typename T>
 void ResizableArray<T>::sort(int (*compFunc)(T obj1, T obj2)) {
 	quickSort(_array, 0, _dataAmount - 1, compFunc);
 }
 
-
+/**
+ * Quick sort implementation using comparison function passed as argument.
+ */
 template<typename T>
 void ResizableArray<T>::quickSort(T *array, int left, int right, int (*compFunc)(T obj1, T obj2)) {
 	T pivot = array[(left + right) / 2];
