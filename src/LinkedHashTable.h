@@ -51,8 +51,8 @@ private:
 	int (*_primaryHashFunc)(T1 obj1, int tableSize);
 	int (*_secondaryHashFunc)(T1 obj1, int tabelSize);
 	double LOAD_FACTOR = .75;
-	LinkedList<HashTableItem<T1, T2>>* _linkedList;
-	HashTableBucket<HashTableItem<T1, T2>>* _hashArray;
+	LinkedList<HashTableItem<T1, T2> >* _linkedList;
+	HashTableBucket<HashTableItem<T1, T2> >* _hashArray;
 	int _hashArraySize;
 
 };
@@ -75,9 +75,9 @@ LinkedHashTable<T1, T2>::LinkedHashTable(int (*compFunc)(T1 obj1, T1 obj2),
 	_compFunc = compFunc;
 	_primaryHashFunc = primaryHashFunc;
 	_secondaryHashFunc = secondaryHashFunc;
-	_linkedList = new LinkedList<HashTableItem<T1, T2>>();
+	_linkedList = new LinkedList<HashTableItem<T1, T2> >();
 	_hashArraySize = (int) (5.0 * (1.0 + LOAD_FACTOR));
-	_hashArray = new HashTableBucket<HashTableItem<T1, T2>> [_hashArraySize];
+	_hashArray = new HashTableBucket<HashTableItem<T1, T2> > [_hashArraySize];
 }
 
 /**
@@ -103,7 +103,7 @@ LinkedHashTable<T1, T2>::LinkedHashTable(LinkedList<T1>* keyList,
 	_compFunc = compFunc;
 	_primaryHashFunc = primaryHashFunc;
 	_secondaryHashFunc = secondaryHashFunc;
-	_linkedList = new LinkedList<HashTableItem<T1, T2>>();
+	_linkedList = new LinkedList<HashTableItem<T1, T2> >();
 	_hashArray = 0;
 	_hashArraySize = 0;
 
@@ -123,19 +123,19 @@ void LinkedHashTable<T1, T2>::reHash() {
 	_hashArraySize =
 			(int) ((double) (_linkedList->size()) * (1.0 + LOAD_FACTOR));
 	delete[] _hashArray;
-	_hashArray = new HashTableBucket<HashTableItem<T1, T2>> [_hashArraySize];
+	_hashArray = new HashTableBucket<HashTableItem<T1, T2> > [_hashArraySize];
 
 	// If linked list is empty
 	if (_linkedList->size() == 0) {
 		_hashArraySize = (int) (5.0 * (1.0 + LOAD_FACTOR));
 		_hashArray =
-				new HashTableBucket<HashTableItem<T1, T2>> [_hashArraySize];
+				new HashTableBucket<HashTableItem<T1, T2> > [_hashArraySize];
 		return;
 	}
 
 	// Traverse linked list
-	LinkedList<HashTableItem<T1, T2>> *item = _linkedList;
-	HashTableBucket<HashTableItem<T1, T2>> *bucket;
+	LinkedList<HashTableItem<T1, T2> > *item = _linkedList;
+	HashTableBucket<HashTableItem<T1, T2> > *bucket;
 	while (item != 0) {
 		int hashVal = _primaryHashFunc(item->info()->getKey(), _hashArraySize);
 		bucket = (_hashArray + hashVal);
@@ -243,14 +243,14 @@ template<typename T1, typename T2>
 void LinkedHashTable<T1, T2>::add(T1 key, T2* value) {
 	// If list is empty
 	if (_linkedList->size() == 0) {
-		_linkedList = new LinkedList<HashTableItem<T1, T2>>(
+		_linkedList = new LinkedList<HashTableItem<T1, T2> >(
 				*(new HashTableItem<T1, T2>(key, value)));
 		return;
 	}
 
 	// Traverse linked list
-	LinkedList<HashTableItem<T1, T2>> *item = _linkedList;
-	LinkedList<HashTableItem<T1, T2>> *previousItem = _linkedList;
+	LinkedList<HashTableItem<T1, T2> > *item = _linkedList;
+	LinkedList<HashTableItem<T1, T2> > *previousItem = _linkedList;
 	bool found = false;
 	while (!found && item != 0) {
 		// Compare keyItem and item.key
@@ -289,7 +289,7 @@ void LinkedHashTable<T1, T2>::add(T1 key, T2* value) {
 template<typename T1, typename T2>
 void LinkedHashTable<T1, T2>::remove(T1 key) {
 	// Traverse linked list, looking for item to remove
-	LinkedList<HashTableItem<T1, T2>> *item = _linkedList;
+	LinkedList<HashTableItem<T1, T2> > *item = _linkedList;
 	bool found = false;
 	while (!found && item != 0) {
 		// Compare keyItem and item.key
@@ -325,7 +325,7 @@ template<typename T1, typename T2>
 T2& LinkedHashTable<T1, T2>::get(T1 key) {
 	// Calculate primary hash
 	int hashVal = _primaryHashFunc(key, _hashArraySize);
-	HashTableBucket<HashTableItem<T1, T2>> bucket = _hashArray[hashVal];
+	HashTableBucket<HashTableItem<T1, T2> > bucket = _hashArray[hashVal];
 
 	// If key in primary hash bucket == key
 	if (_compFunc(bucket._value->getKey(), key) == 0) {
@@ -377,7 +377,7 @@ ResizableArray<T2>* LinkedHashTable<T1, T2>::toResizableArray() {
 	}
 
 	// Iterate over linked list
-	LinkedList<HashTableItem<T1, T2>> *item = _linkedList;
+	LinkedList<HashTableItem<T1, T2> > *item = _linkedList;
 	while (item != 0) {
 		// Add item to end of array
 		try {
@@ -411,7 +411,7 @@ LinkedList<T2>* LinkedHashTable<T1, T2>::toLinkedList() {
 	}
 
 	// Iterate over linked list
-	LinkedList<HashTableItem<T1, T2>> *item = _linkedList;
+	LinkedList<HashTableItem<T1, T2> > *item = _linkedList;
 	int count = 0;
 	while (item != 0) {
 		// Add item to end of list
